@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Robot remote</title>
+<style type="text/css">
+	html{height:100%}
+	div{margin:auto;width:100%;text-align:center;vertical-align:middle}
+	div.joys{line-height:380px;margin-top:20px}
+	button{
+		display:inline-block;
+		background-color:#d60;
+		width:100px;
+		height:100px;
+		position:relative;
+		border-radius:100px;
+		border:1px solid #800;
+		margin:auto;
+	}
+	button#R{margin-left:400px}
+	div.buttons{line-height:100px;}
+	.buttons button{
+		border-radius: 20px;
+		background-color:#60d;
+		position: static;
+	}
+</style>
+</head>
+<body>
+	<div class="joys">
+		<button id="L">L</button>
+		<button id="R">R</button>
+	</div>
+	<div class="buttons">
+		<button id="A">A</button>
+		<button id="B">B</button>
+		<button id="C">C</button>
+		<button id="D">D</button>
+	</div>
+	<script src="remote.js"></script>
+</body>
+</html>

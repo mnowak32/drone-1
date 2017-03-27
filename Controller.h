@@ -7,10 +7,10 @@
 class Controller {
   public:
     Controller();
-    int8_t throttle;
-    int8_t pitch;
-    int8_t yaw;
-    int8_t roll;
+    float throttle;
+    float pitch;
+    float yaw;
+    float roll;
     char button;
     boolean changed();
     boolean pressed();

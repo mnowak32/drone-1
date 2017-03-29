@@ -23,8 +23,8 @@ void Controller::parseMessage(String cmd) {
   if (control == 'L' || control == 'R') {
     isChanged = true;
     int splitAt = cmd.indexOf(',');
-    int val1 = cmd.substring(1, splitAt).toInt();
-    int val2 = cmd.substring(splitAt + 1).toInt();
+    float val1 = cmd.substring(1, splitAt).toFloat();
+    float val2 = cmd.substring(splitAt + 1).toFloat();
   
     switch(control) {
       case 'L': yaw = val1; throttle = val2; break;
@@ -32,14 +32,14 @@ void Controller::parseMessage(String cmd) {
       default: break;
     }
   } else {
-    Serial.println(control);
+//    Serial.println(control);
     isPressed = true;
     button = control;
   }
 
-  Serial.print("Throttle:"); Serial.print(throttle);
-  Serial.print(",yaw:"); Serial.print(yaw);
-  Serial.print(",pitch:"); Serial.print(pitch);
-  Serial.print(",roll:"); Serial.println(roll);
+//  Serial.print("Throttle:"); Serial.print(throttle);
+//  Serial.print(",yaw:"); Serial.print(yaw);
+//  Serial.print(",pitch:"); Serial.print(pitch);
+//  Serial.print(",roll:"); Serial.println(roll);
 }
 

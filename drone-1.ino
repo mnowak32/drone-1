@@ -21,6 +21,7 @@ WebSocketsServer webSocket(81);
 Motors motors(D4, D3, D2, D1);
 Controller ctl;
 
+boolean powerOn = false;
 double pitchZero = -0.5, rollZero = -5.6;
 
 double pitchP = 0.9, pitchI = 0.3, pitchD = 0.25;
@@ -368,13 +369,12 @@ void loop() {
   
   if (ctl.changed()) { //automatically clears the flag
     
-//    pitchSet = (double) ctl.pitch;
-//    rollSet = (double) ctl.roll;
-//    yawSet = (double) ctl.yaw;
-    throttleSet = (double) (ctl.throttle + 180) / 2;
+//    pitchSet = ctl.pitch;
+//    rollSet = ctl.roll;
+//    yawSet = ctl.yaw;
+    throttleSet = (double) (180 - ctl.throttle) / 2;
   }
   if (ctl.pressed()) {
-    Serial.println("pressss");
     switch (ctl.button) {
       case 'A':
         pitchPid.SetMode(AUTOMATIC);
@@ -385,6 +385,12 @@ void loop() {
         pitchPid.SetMode(MANUAL);
         rollPid.SetMode(MANUAL);
         yawPid.SetMode(MANUAL);
+        break;
+      case 'C':
+        powerOn = false;
+        break;
+      case 'D':
+        powerOn = true;
         break;
     }
   }
@@ -404,7 +410,11 @@ void loop() {
   double mot4 = throttleSet - rollOut; // +yawOut
   if (mot4 < 0) { mot4 = 0; }
 
-  motors.setSpeeds((uint8_t) mot1, (uint8_t) mot2, (uint8_t) mot3, (uint8_t) mot4);
+  if (powerOn) {
+    motors.setSpeeds((uint8_t) mot1, (uint8_t) mot2, (uint8_t) mot3, (uint8_t) mot4);
+  } else {
+    motors.setSpeed(0);
+  }
   
 }
 

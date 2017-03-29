@@ -18,10 +18,6 @@ function startup() {
 	sock.onopen = sockOpen; 
 	sock.onmessage = sockMessage;
 	
-	buttons.forEach(function(id) {
-		var but = document.getElementById(id);
-		but.addEventListener("click", handleClick, false);
-	});
 }
 
 function sockOpen(e) {
@@ -35,13 +31,16 @@ function sockMessage(e) {
 }
 
 function handleStart(e) {
+	e.preventDefault();
 	var touches = e.changedTouches;
 	for (var i = 0; i < touches.length; i++) {
 		var t = touches[i];
 		var tt = t.target;
 		if (tt.nodeName == 'BUTTON' && joys.indexOf(tt.id) > -1) {
-			e.preventDefault();
 			ongoingTouches[t.identifier] = [ t.pageX, t.pageY, 0, 0 ];
+		}
+		if (tt.nodeName == 'BUTTON' && buttons.indexOf(tt.id) > -1) {
+			handleClick(tt);
 		}
 	}
 }
@@ -87,15 +86,17 @@ function handleMove(e) {
 			if (changed) {
 				t.target.setAttribute("style", "top:" + deltaY + "px;left:" + deltaX + "px");
 				var dir = t.target.getAttribute("id");
-				sock.send(dir + deltaX + "," + deltaY);
+				var message = dir + deltaX + "," + deltaY;
+				console.log("sending message:"); console.log(message);
+				sock.send(message);
 			}
 		}
 	}
 }
 
-function handleClick(e) {
-	e.preventDefault();
-	var id = e.target.id;
+function handleClick(tt) {
+	var id = tt.id;
+	console.log("sending message:"); console.log(id);
 	sock.send(id);
 }
 

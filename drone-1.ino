@@ -21,6 +21,8 @@ WebSocketsServer webSocket(81);
 Motors motors(D4, D3, D2, D1);
 Controller ctl;
 
+double pitchZero = -0.5, rollZero = -5.6;
+
 double pitchP = 0.9, pitchI = 0.3, pitchD = 0.25;
 double rollP = 0.9, rollI = 0.3, rollD = 0.25;
 double yawP = 0.8, yawI = 0.1, yawD = 0.05;
@@ -360,8 +362,8 @@ void loop() {
     mpuInterrupt = false;
     readMpuData();
     yawIn = ypr[0] * RADIANS_TO_DEGREES;
-    pitchIn = ypr[1] * RADIANS_TO_DEGREES;
-    rollIn = ypr[2] * RADIANS_TO_DEGREES;
+    pitchIn = ypr[1] * RADIANS_TO_DEGREES - pitchZero;
+    rollIn = ypr[2] * RADIANS_TO_DEGREES - rollZero;
   }
   
   if (ctl.changed()) { //automatically clears the flag

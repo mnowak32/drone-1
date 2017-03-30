@@ -22,6 +22,7 @@ Motors motors(D4, D3, D2, D1);
 Controller ctl;
 
 boolean powerOn = false;
+double pitchZero = -1.4, rollZero = -4.0;
 
 double pitchP = 0.9, pitchI = 0.3, pitchD = 0.25;
 double rollP = 0.9, rollI = 0.3, rollD = 0.25;
@@ -364,8 +365,8 @@ void loop() {
     mpuInterrupt = false;
     readMpuData();
     yawIn = ypr[0] * RADIANS_TO_DEGREES;
-    pitchIn = ypr[1] * RADIANS_TO_DEGREES;
-    rollIn = ypr[2] * RADIANS_TO_DEGREES;
+    pitchIn = ypr[1] * RADIANS_TO_DEGREES - pitchZero;
+    rollIn = ypr[2] * RADIANS_TO_DEGREES - rollZero;
   }
   
   if (ctl.changed()) { //automatically clears the flag
@@ -377,21 +378,23 @@ void loop() {
   }
   if (ctl.pressed()) {
     switch (ctl.button) {
-      case 'A':
+      case 'A': //turn on the powah!
         pitchPid.SetMode(AUTOMATIC);
         rollPid.SetMode(AUTOMATIC);
         yawPid.SetMode(AUTOMATIC);
+        powerOn = true;
         break;
-      case 'B':
+      case 'B': //be quiet (and still)!
         pitchPid.SetMode(MANUAL);
         rollPid.SetMode(MANUAL);
         yawPid.SetMode(MANUAL);
-        break;
-      case 'C':
         powerOn = false;
         break;
-      case 'D':
-        powerOn = true;
+      case 'C':
+        break;
+      case 'D': //zero IMU readings
+        pitchZero = ypr[1] * RADIANS_TO_DEGREES;
+        rollZero = ypr[2] * RADIANS_TO_DEGREES;
         break;
     }
   }

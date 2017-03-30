@@ -27,7 +27,9 @@ double pitchP = 0.9, pitchI = 0.3, pitchD = 0.25;
 double rollP = 0.9, rollI = 0.3, rollD = 0.25;
 double yawP = 0.8, yawI = 0.1, yawD = 0.05;
 
-double throttleSet = 60;
+double throttleSet = 40;
+double pidRange = 60, throttleRange = 120;
+
 double pitchSet = 0, pitchIn = 0, pitchOut = 0;
 double rollSet = 0, rollIn = 0, rollOut = 0;
 double yawSet = 0, yawIn = 0, yawOut = 0;
@@ -298,13 +300,13 @@ void setup() {
 
   pitchPid.SetSampleTime(20);
   pitchPid.SetMode(MANUAL);
-  pitchPid.SetOutputLimits(-180,180);
+  pitchPid.SetOutputLimits(-pidRange, pidRange);
   rollPid.SetSampleTime(20);
   rollPid.SetMode(MANUAL);
-  rollPid.SetOutputLimits(-180,180);
+  rollPid.SetOutputLimits(-pidRange, pidRange);
   yawPid.SetSampleTime(20);
   yawPid.SetMode(MANUAL);
-  yawPid.SetOutputLimits(-180,180);
+  yawPid.SetOutputLimits(-pidRange, pidRange);
 
 // now we're ready.
   indicateReadiness();
@@ -358,7 +360,7 @@ void readMpuData() {
 void loop() {
   srv.handleClient();
   webSocket.loop();
-  if (mpuInterrupt) { //the mpu frequency dictates pid loop frequency also.
+  if (mpuInterrupt) {
     mpuInterrupt = false;
     readMpuData();
     yawIn = ypr[0] * RADIANS_TO_DEGREES;
@@ -371,7 +373,7 @@ void loop() {
 //    pitchSet = ctl.pitch;
 //    rollSet = ctl.roll;
 //    yawSet = ctl.yaw;
-    throttleSet = (double) (180 - ctl.throttle) / 2;
+    throttleSet = (double) (180 - ctl.throttle) / 2 * (180 / throttleRange);
   }
   if (ctl.pressed()) {
     switch (ctl.button) {

@@ -18,6 +18,7 @@ function startup() {
 	sock.onopen = sockOpen; 
 	sock.onmessage = sockMessage;
 	
+	buttons.forEach(function(b) { $("#" + b).on("click", handleClickEv); });
 }
 
 function sockOpen(e) {
@@ -28,6 +29,11 @@ function sockOpen(e) {
 function sockMessage(e) {
 	console.log("Socket message: ");
 	console.log(e.data);
+	if (e.data.charAt(0) == "G") { //gauge data
+		var id = "#" + e.data.substr(0, 2);
+		var value = e.data.substr(2);
+		$(id + ">p").css("width", value + "%");
+	}
 }
 
 function handleStart(e) {
@@ -92,6 +98,10 @@ function handleMove(e) {
 			}
 		}
 	}
+}
+
+function handleClickEv(e) {
+	handleClick(ev.target);
 }
 
 function handleClick(tt) {

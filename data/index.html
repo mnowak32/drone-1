@@ -3,30 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <title>Robot remote</title>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
 <style type="text/css">
 	html{height:100%}
 	div{margin:auto;width:100%;text-align:center;vertical-align:middle}
-	div.joys{line-height:380px;margin-top:20px}
+	div.joys{line-height:360px;margin-top:20px}
 	button{
 		display:inline-block;
 		background-color:#d60;
-		width:100px;
-		height:100px;
+		width:80px;
+		height:80px;
 		position:relative;
-		border-radius:100px;
+		border-radius:80px;
 		border:1px solid #800;
 		margin:auto;
 	}
 	button#R{margin-left:400px}
-	div.buttons{line-height:100px;}
+	div.buttons{line-height:80px;}
 	.buttons button{
 		border-radius: 20px;
 		background-color:#60d;
 		position: static;
 	}
+	div.gauges{line-height:20px;}
+	div.gauges div{display:inline-block;width:61px;height:10px;border:1px solid black;margin-right:10px;overflow:hidden;border-radius:4px}
+	div.gauges div>p{margin:0;display:block;width:25%;height:10px;background-color:#6f6}
 </style>
 </head>
 <body>
+	<div class="gauges">
+		<div id="G1"><p></p></div>
+		<div id="G2"><p></p></div>
+		<div id="G3"><p></p></div>
+		<div id="G4"><p></p></div>
+		<div id="G5"><p></p></div>
+		<div id="G6"><p></p></div>
+		<div id="G7"><p></p></div>
+	</div>
 	<div class="joys">
 		<button id="L">L</button>
 		<button id="R">R</button>

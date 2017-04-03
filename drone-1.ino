@@ -13,6 +13,7 @@
 #include "Motors.h"
 #include "Controller.h"
 #include "WifiCredentials.h"
+#include "TickerScheduler.h"
 
 #undef WIFI_MODE_AP
 
@@ -20,6 +21,7 @@ ESP8266WebServer srv(80);
 WebSocketsServer webSocket(81);
 Motors motors(D4, D3, D2, D1);
 Controller ctl;
+TickerScheduler sched(1);
 
 boolean powerOn = false;
 double pitchZero = -1.4, rollZero = -4.0;
@@ -38,6 +40,7 @@ PID pitchPid(&pitchIn, &pitchOut, &pitchSet, pitchP, pitchI, pitchD, DIRECT);
 PID rollPid(&rollIn, &rollOut, &rollSet, rollP, rollI, rollD, DIRECT);
 PID yawPid(&yawIn, &yawOut, &yawSet, yawP, yawI, yawD, DIRECT);
 
+double mot1, mot2, mot3, mot4;
 
 MPU6050 mpu;
 
@@ -95,10 +98,10 @@ bool handleFileRead(String path){
   return false;
 }
 
+static uint8_t connectedClient = 0xff;
+
 // handle a websocket traffic. Note, that only one client connection is allowed at any time.
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) {
-
-  static uint8_t connectedClient = 0xff;
 
   switch(type) {
     case WStype_DISCONNECTED: //if a connected client disconnects, free the slot
@@ -309,6 +312,9 @@ void setup() {
   yawPid.SetMode(MANUAL);
   yawPid.SetOutputLimits(-pidRange, pidRange);
 
+// set up scheduled tasks
+// -- websocket client update
+//  sched.add(0, 500, sendWsData, (void *)0, false); //call every 200 ms
 // now we're ready.
   indicateReadiness();
 }
@@ -357,16 +363,29 @@ void readMpuData() {
 
 }
 
+void sendWsData(void *par) {
+  if (connectedClient != 0xff) {
+    webSocket.sendTXT(connectedClient, String("G1") + map(pitchIn, -30, 30, 0, 100));
+    webSocket.sendTXT(connectedClient, String("G2") + map(rollIn, -30, 30, 0, 100));
+    webSocket.sendTXT(connectedClient, String("G3") + map(mot1, 0, 180, 0, 100));
+    webSocket.sendTXT(connectedClient, String("G4") + map(mot2, 0, 180, 0, 100));
+    webSocket.sendTXT(connectedClient, String("G5") + map(mot3, 0, 180, 0, 100));
+    webSocket.sendTXT(connectedClient, String("G6") + map(mot4, 0, 180, 0, 100));
+  }
+}
+
 
 void loop() {
   srv.handleClient();
   webSocket.loop();
+//  sched.update();
   if (mpuInterrupt) {
     mpuInterrupt = false;
     readMpuData();
     yawIn = ypr[0] * RADIANS_TO_DEGREES;
-    pitchIn = ypr[1] * RADIANS_TO_DEGREES - pitchZero;
+    pitchIn = -ypr[1] * RADIANS_TO_DEGREES - pitchZero;
     rollIn = ypr[2] * RADIANS_TO_DEGREES - rollZero;
+
   }
   
   if (ctl.changed()) { //automatically clears the flag
@@ -393,6 +412,7 @@ void loop() {
       case 'C':
         break;
       case 'D': //zero IMU readings
+        Serial.println("zeroing!");
         pitchZero = ypr[1] * RADIANS_TO_DEGREES;
         rollZero = ypr[2] * RADIANS_TO_DEGREES;
         break;
@@ -403,15 +423,15 @@ void loop() {
   rollPid.Compute();
 //  yawPid.Compute();
 
-  double mot1 = throttleSet - pitchOut; // +yawOut
+  mot1 = throttleSet - pitchOut; // +yawOut
   if (mot1 < 0) { mot1 = 0; }
-  double mot3 = throttleSet + pitchOut; // +yawOut
+  mot3 = throttleSet + pitchOut; // +yawOut
   if (mot3 < 0) { mot3 = 0; }
 
 //  rollOut = 0;
-  double mot2 = throttleSet + rollOut; // +yawOut
+  mot2 = throttleSet + rollOut; // +yawOut
   if (mot2 < 0) { mot2 = 0; }
-  double mot4 = throttleSet - rollOut; // +yawOut
+  mot4 = throttleSet - rollOut; // +yawOut
   if (mot4 < 0) { mot4 = 0; }
 
   if (powerOn) {

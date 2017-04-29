@@ -26,8 +26,8 @@ TickerScheduler sched(1);
 boolean powerOn = false;
 double pitchZero = -1.4, rollZero = -4.0;
 
-double pitchP = 0.9, pitchI = 0.3, pitchD = 0.25;
-double rollP = 0.9, rollI = 0.3, rollD = 0.25;
+double pitchP = 0.6, pitchI = 0.3, pitchD = 0.2;
+double rollP = 0.6, rollI = 0.3, rollD = 0.2;
 double yawP = 0.8, yawI = 0.1, yawD = 0.05;
 
 double throttleSet = 40;
@@ -120,7 +120,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
           webSocket.disconnect(num);
         } else {
           connectedClient = num;
-          webSocket.sendTXT(num, "GO ON");
+//          webSocket.sendTXT(num, "GO ON");
+          webSocket.sendTXT(num, String("P") + pitchP + "," + pitchI + "," + pitchD);
         }
       }
       break;
@@ -130,7 +131,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
           webSocket.disconnect(num);
           break;
         }
-//        Serial.printf("[%u] got Text: %s\n", num, payload);
+        Serial.printf("[%u] got Text: %s\n", num, payload);
         String cmd((char *)payload);
         ctl.parseMessage(cmd);
       }
@@ -302,19 +303,19 @@ void setup() {
 // set up PID loops
 //==============================
 
-  pitchPid.SetSampleTime(20);
+  pitchPid.SetSampleTime(50);
   pitchPid.SetMode(MANUAL);
   pitchPid.SetOutputLimits(-pidRange, pidRange);
-  rollPid.SetSampleTime(20);
+  rollPid.SetSampleTime(50);
   rollPid.SetMode(MANUAL);
   rollPid.SetOutputLimits(-pidRange, pidRange);
-  yawPid.SetSampleTime(20);
+  yawPid.SetSampleTime(50);
   yawPid.SetMode(MANUAL);
   yawPid.SetOutputLimits(-pidRange, pidRange);
 
 // set up scheduled tasks
 // -- websocket client update
-//  sched.add(0, 500, sendWsData, (void *)0, false); //call every 200 ms
+  sched.add(0, 1000, sendWsData, (void *)0, false); //call every 200 ms
 // now we're ready.
   indicateReadiness();
 }
@@ -413,19 +414,32 @@ void loop() {
         break;
       case 'D': //zero IMU readings
         Serial.println("zeroing!");
-        pitchZero = ypr[1] * RADIANS_TO_DEGREES;
+        pitchZero = -ypr[1] * RADIANS_TO_DEGREES;
         rollZero = ypr[2] * RADIANS_TO_DEGREES;
         break;
     }
   }
+  if (ctl.submitted()) {
+    pitchP = ctl.newP;
+    pitchI = ctl.newI;
+    pitchD = ctl.newD;
+    pitchPid.SetTunings(pitchP, pitchI, pitchD);
+  }
   
-  pitchPid.Compute();
+  if (pitchPid.Compute()) {
+//       Serial.print(pitchIn, 2);
+//       Serial.print(" - ");
+//       Serial.print(pitchSet, 2);
+//       Serial.print(" : ");
+//       Serial.println(pitchOut, 2);
+//    
+  }
   rollPid.Compute();
 //  yawPid.Compute();
 
-  mot1 = throttleSet - pitchOut; // +yawOut
+  mot1 = throttleSet + pitchOut; // +yawOut
   if (mot1 < 0) { mot1 = 0; }
-  mot3 = throttleSet + pitchOut; // +yawOut
+  mot3 = throttleSet - pitchOut; // +yawOut
   if (mot3 < 0) { mot3 = 0; }
 
 //  rollOut = 0;

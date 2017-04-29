@@ -1,6 +1,6 @@
 #include "Controller.h"
 
-boolean isChanged = false, isPressed = false;
+boolean isChanged = false, isPressed = false, isSubmitted = false;
 
 Controller::Controller() {
   
@@ -18,6 +18,12 @@ boolean Controller::pressed() {
   return retVal;
 }
 
+boolean Controller::submitted() {
+  boolean retVal = isSubmitted;
+  isSubmitted = false;
+  return retVal;
+}
+
 void Controller::parseMessage(String cmd) {
   char control = cmd.charAt(0);
   if (control == 'L' || control == 'R') {
@@ -31,6 +37,13 @@ void Controller::parseMessage(String cmd) {
       case 'R': pitch = val1; roll = val2; break;
       default: break;
     }
+  } else if (control == 'P') {
+    int splitAt = cmd.indexOf(',');
+    int splitAt2 = cmd.indexOf(',', splitAt + 1);
+    newP = cmd.substring(1, splitAt).toFloat();
+    newI = cmd.substring(splitAt + 1, splitAt2).toFloat();
+    newD = cmd.substring(splitAt2 + 1).toFloat();
+    isSubmitted = true;
   } else {
 //    Serial.println(control);
     isPressed = true;

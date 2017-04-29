@@ -4,8 +4,9 @@
 
 var maxValue = 180;
 var ongoingTouches = {}
-var sock = new WebSocket("ws://"+ location.hostname + ":81");
+//var sock = new WebSocket("ws://"+ location.hostname + ":81");
 //var sock = {};
+var sock = new WebSocket("ws://192.168.1.19:81");
 var buttons = ["A", "B", "C", "D"];
 var joys = ["L", "R"];
 
@@ -19,6 +20,13 @@ function startup() {
 	sock.onmessage = sockMessage;
 	
 	buttons.forEach(function(b) { $("#" + b).on("click", handleClickEv); });
+	$("#pidSet").on("click", function(e){
+		e.preventDefault();
+		var p = $("#inP").val();
+		var i = $("#inI").val();
+		var d = $("#inD").val();
+		sock.send("P" + p + "," + i + "," + d)
+	});
 }
 
 function sockOpen(e) {
@@ -33,6 +41,11 @@ function sockMessage(e) {
 		var id = "#" + e.data.substr(0, 2);
 		var value = e.data.substr(2);
 		$(id + ">p").css("width", value + "%");
+	} else if (e.data.charAt(0) == "P") {
+		var pid = e.data.substr(1).split(",");
+		$("#inP").val(pid[0]);
+		$("#inI").val(pid[1]);
+		$("#inD").val(pid[2]);
 	}
 }
 
@@ -101,7 +114,7 @@ function handleMove(e) {
 }
 
 function handleClickEv(e) {
-	handleClick(ev.target);
+	handleClick(e.target);
 }
 
 function handleClick(tt) {

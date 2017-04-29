@@ -28,6 +28,9 @@
 	div.gauges{line-height:20px;}
 	div.gauges div{display:inline-block;width:61px;height:10px;border:1px solid black;margin-right:10px;overflow:hidden;border-radius:4px}
 	div.gauges div>p{margin:0;display:block;width:25%;height:10px;background-color:#6f6}
+	div.tuning{margin-top:10px}
+	div.tuning input{width:80px}
+	div.tuning button{border-radius:4px;width:auto;height:auto;}
 </style>
 </head>
 <body>
@@ -49,6 +52,12 @@
 		<button id="B">B</button>
 		<button id="C">C</button>
 		<button id="D">D</button>
+	</div>
+	<div class="tuning">
+		P <input type="number" step="0.1" id="inP">
+		I <input type="number" step="0.1" id="inI">
+		D <input type="number" step="0.1" id="inD">
+		<button id="pidSet">Set!</button>
 	</div>
 	<script src="remote.js"></script>
 </body>

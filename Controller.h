@@ -12,8 +12,11 @@ class Controller {
     float yaw;
     float roll;
     char button;
+    float newP, newI, newD;
     boolean changed();
     boolean pressed();
+    boolean submitted();
+    
 
     void parseMessage(String msg);
 };

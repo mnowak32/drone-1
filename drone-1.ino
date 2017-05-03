@@ -10,12 +10,15 @@
 #include <MPU6050_6Axis_MotionApps20.h>
 #include <PID_v1.h>
 
+//#include <ArduinoOTA.h>
+
 #include "Motors.h"
 #include "Controller.h"
 #include "WifiCredentials.h"
 #include "TickerScheduler.h"
 
 #undef WIFI_MODE_AP
+//#define WIFI_MODE_AP
 
 ESP8266WebServer srv(80);
 WebSocketsServer webSocket(81);
@@ -26,18 +29,17 @@ TickerScheduler sched(1);
 boolean powerOn = false;
 double pitchZero = -1.4, rollZero = -4.0;
 
-double pitchP = 0.6, pitchI = 0.3, pitchD = 0.2;
-double rollP = 0.6, rollI = 0.3, rollD = 0.2;
-double yawP = 0.8, yawI = 0.1, yawD = 0.05;
+double pitchP = 1.0, pitchI = -0.1, pitchD = -0.2;
+double yawP = 0.5, yawI = 0.0, yawD = -0.1;
 
-double throttleSet = 40;
+double throttleSet = 80;
 double pidRange = 60, throttleRange = 120;
 
 double pitchSet = 0, pitchIn = 0, pitchOut = 0;
 double rollSet = 0, rollIn = 0, rollOut = 0;
 double yawSet = 0, yawIn = 0, yawOut = 0;
 PID pitchPid(&pitchIn, &pitchOut, &pitchSet, pitchP, pitchI, pitchD, DIRECT);
-PID rollPid(&rollIn, &rollOut, &rollSet, rollP, rollI, rollD, DIRECT);
+PID rollPid(&rollIn, &rollOut, &rollSet, pitchP, pitchI, pitchD, DIRECT);
 PID yawPid(&yawIn, &yawOut, &yawSet, yawP, yawI, yawD, DIRECT);
 
 double mot1, mot2, mot3, mot4;
@@ -131,7 +133,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
           webSocket.disconnect(num);
           break;
         }
-        Serial.printf("[%u] got Text: %s\n", num, payload);
+//        Serial.printf("[%u] got Text: %s\n", num, payload);
         String cmd((char *)payload);
         ctl.parseMessage(cmd);
       }
@@ -271,10 +273,42 @@ void setUpMpu() {
   
 }
 
+//void setUpOTA() {
+//  ArduinoOTA.onStart([]() {
+//    String type;
+//    if (ArduinoOTA.getCommand() == U_FLASH)
+//      type = "sketch";
+//    else // U_SPIFFS
+//      type = "filesystem";
+//
+//    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+//    Serial.println("Start updating " + type);
+//  });
+//  ArduinoOTA.onEnd([]() {
+//    Serial.println("\nEnd");
+//  });
+//  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+//    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+//  });
+//  ArduinoOTA.onError([](ota_error_t error) {
+//    Serial.printf("Error[%u]: ", error);
+//    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+//    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+//    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+//    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+//    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+//  });
+//  ArduinoOTA.begin();  
+//}
+
 void setup() {
   Serial.begin(115200);
   Serial.println();
 
+// set up Over The Air updates!
+
+//  setUpOTA();
+  
 //==============================
 // set up the WiFi connection
 //==============================
@@ -386,7 +420,6 @@ void loop() {
     yawIn = ypr[0] * RADIANS_TO_DEGREES;
     pitchIn = -ypr[1] * RADIANS_TO_DEGREES - pitchZero;
     rollIn = ypr[2] * RADIANS_TO_DEGREES - rollZero;
-
   }
   
   if (ctl.changed()) { //automatically clears the flag
@@ -424,35 +457,25 @@ void loop() {
     pitchI = ctl.newI;
     pitchD = ctl.newD;
     pitchPid.SetTunings(pitchP, pitchI, pitchD);
+    rollPid.SetTunings(pitchP, pitchI, pitchD);
   }
   
-  if (pitchPid.Compute()) {
-//       Serial.print(pitchIn, 2);
-//       Serial.print(" - ");
-//       Serial.print(pitchSet, 2);
-//       Serial.print(" : ");
-//       Serial.println(pitchOut, 2);
-//    
-  }
+  pitchPid.Compute();
   rollPid.Compute();
-//  yawPid.Compute();
+  yawPid.Compute();
 
   mot1 = throttleSet + pitchOut; // +yawOut
-  if (mot1 < 0) { mot1 = 0; }
   mot3 = throttleSet - pitchOut; // +yawOut
-  if (mot3 < 0) { mot3 = 0; }
 
-//  rollOut = 0;
   mot2 = throttleSet + rollOut; // +yawOut
-  if (mot2 < 0) { mot2 = 0; }
   mot4 = throttleSet - rollOut; // +yawOut
-  if (mot4 < 0) { mot4 = 0; }
 
   if (powerOn) {
     motors.setSpeeds((uint8_t) mot1, (uint8_t) mot2, (uint8_t) mot3, (uint8_t) mot4);
   } else {
     motors.setSpeed(0);
   }
-  
+
+//  ArduinoOTA.handle();
 }
 

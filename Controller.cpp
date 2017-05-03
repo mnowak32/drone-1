@@ -54,5 +54,8 @@ void Controller::parseMessage(String cmd) {
 //  Serial.print(",yaw:"); Serial.print(yaw);
 //  Serial.print(",pitch:"); Serial.print(pitch);
 //  Serial.print(",roll:"); Serial.println(roll);
+//  Serial.print("P:"); Serial.print(newP);
+//  Serial.print(",I:"); Serial.print(newI);
+//  Serial.print(",D:"); Serial.println(newD);
 }
 
